@@ -1,19 +1,23 @@
-import { DeviceStatus } from "./device_status.js";
-import { v4 as uuidv4 } from "uuid";
+import { DeviceStatus } from "../enums/device_status.js";
+import { v4 } from "uuid";
 
-class Device {
+export abstract class Device {
   private id: string;
+  private name: string;
   private type: string;
   private status: DeviceStatus;
   private isRestarting: boolean = false;
+
+  private errorChance: number = 5 * 10e-4;
 
   /**
    * Creates a new Device
    * @param type string
    * @param status DeviceStatus
    */
-  constructor(type: string, status: DeviceStatus) {
-    this.id = uuidv4();
+  constructor(name: string, type: string, status: DeviceStatus) {
+    this.id = v4();
+    this.name = name;
     this.type = type;
     this.status = status;
   }
@@ -24,6 +28,14 @@ class Device {
    */
   public getId(): string {
     return this.id;
+  }
+
+  /**
+   * Returns device name
+   * @returns string
+   */
+  public getName(): string {
+    return this.name;
   }
 
   /**
@@ -59,7 +71,7 @@ class Device {
   }
 
   /**
-   * Tries to turn device on. If device is in ERROR state or is restaring, it cannot be turned on.
+   * Tries to turn device on. If device is in ERROR state or is restarting, it cannot be turned on.
    * @returns boolean - true if successful, false otherwise
    */
   public on(): boolean {
@@ -103,7 +115,7 @@ class Device {
       this.isRestarting = true;
       this.status = DeviceStatus.OFF;
 
-      // TODO - handling kiedy sie program skonczy w czasie tego timeouta
+      // TODO - handling kiedy sie program skonczy w czasie tego timeout
       setTimeout(() => {
         this.status = DeviceStatus.ON;
         this.isRestarting = false;
@@ -116,5 +128,17 @@ class Device {
     }
   }
 
-  // TODO - zrobic simulate()
+  private error() {
+    if (Math.random() < this.errorChance) {
+      this.status = DeviceStatus.ERROR;
+    }
+  }
+
+  public simulate() {
+    if (this.status === DeviceStatus.OFF) {
+      return;
+    } else {
+      this.error();
+    }
+  }
 }
